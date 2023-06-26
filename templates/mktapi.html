@@ -5,14 +5,14 @@
     <title>Стартовая страница</title>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
-            $(document).ready(function() {
+        $(document).ready(function() {
             $('form').submit(function(e) {
                 e.preventDefault(); // Отменяем стандартное поведение формы
 
                 // Получаем данные формы
                 var formData = $(this).serialize();
 
-                $.post('/continue', formData, function() {
+                $.post('/api/action-post', formData, function() {
                     // Обработка успешного выполнения запроса (скрипта)
                     alert("Запрос успешно выполнен!");
                     window.close();
@@ -23,7 +23,7 @@
 </head>
 <body>
     <h1>Добро пожаловать на сайт</h1>
-    <form method="POST">
+    <form method="POST" action="/api/action-post">
         <input type="hidden" name="mac_address" value="{{ mac_address }}">
         <input type="hidden" name="mikrotik_ip" value="{{ mikrotik_ip }}">
         <input type="submit" value="Продолжить">

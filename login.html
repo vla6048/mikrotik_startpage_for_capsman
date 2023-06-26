@@ -1,0 +1,29 @@
+<html>
+<title>...</title>
+<body>
+<form name="redirect" action="http://10.14.88.14:5000/api/action-get" method="get">
+<input type="hidden" name="mac" value="$(mac)">
+<input type="hidden" name="mikrotik_ip" value="" data-ip="$(ip)">
+</form>
+<script language="JavaScript">
+function ipToNumber(ipAddress) {
+    var parts = ipAddress.split(".");
+    var number = 0;
+    for (var i = 0; i < parts.length; i++) {
+        number = number * 256 + parseInt(parts[i], 10);
+    }
+    return number;
+}
+
+// Получаем IP-адрес MikroTik из атрибута data-ip
+var ipAddress = document.querySelector('form[name="redirect"] input[name="mikrotik_ip"]').getAttribute('data-ip');
+var ipNumber = ipToNumber(ipAddress);
+
+// Устанавливаем значение IP-адреса в скрытое поле формы
+document.querySelector('form[name="redirect"] input[name="mikrotik_ip"]').value = ipNumber;
+
+// Отправляем форму автоматически
+document.redirect.submit();
+</script>
+</body>
+</html>
