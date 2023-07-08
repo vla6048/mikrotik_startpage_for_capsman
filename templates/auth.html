@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.png') }}">
+    <title>Аутентификация</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            $('form').submit(function(e) {
+                e.preventDefault(); // Отменяем стандартное поведение формы
+
+                // Получаем данные формы
+                var formData = $(this).serialize();
+
+                $.post('/api/action-post', formData, function() {
+                    // Обработка успешного выполнения запроса (скрипта)
+                    alert("Запрос успешно выполнен!");
+                    window.close();
+                });
+            });
+        });
+    </script>
+</head>
+<body>
+    <h1>Аутентификация</h1>
+    <form method="POST" action="/api/action-post">
+        <input type="hidden" name="mac_address" value="{{ mac }}">
+        <input type="hidden" name="ip_address" value="{{ ip }}">
+        <input type="hidden" name="username" value="{{ username }}">
+        <input type="hidden" name="link_login" value="{{ link_login }}">
+        <input type="hidden" name="link_login_only" value="{{ link_login_only }}">
+        <input type="hidden" name="link_orig" value="{{ link_orig }}">
+        <input type="hidden" name="error" value="{{ error }}">
+        <input type="submit" value="Продолжить">
+    </form>
+</body>
+</html>
