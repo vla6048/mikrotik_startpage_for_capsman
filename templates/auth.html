@@ -1,28 +1,53 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.png') }}">
-    <title>Аутентификация</title>
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script>
-        $(document).ready(function() {
-            $('form').submit(function(e) {
-                e.preventDefault(); // Отменяем стандартное поведение формы
+<!-- auth.html -->
+{% extends 'base.html' %}
 
-                // Получаем данные формы
-                var formData = $(this).serialize();
+{% block title %}Авторизація{% endblock %}
 
-                $.post('/api/action-post', formData, function() {
-                    // Обработка успешного выполнения запроса (скрипта)
-                    alert("Запрос успешно выполнен!");
-                    window.close();
-                });
+{% block scripts %}
+<script>
+    $(document).ready(function() {
+        $('form').submit(function(e) {
+            e.preventDefault();
+            var form = $(this);
+            var buttonContainer = form.find('.button-container');
+            var button = buttonContainer.find('.button');
+
+            buttonContainer.addClass('disabled');
+            button.prop('disabled', true);
+            button.val('...');
+
+            var formData = form.serialize();
+
+            // Отправляем форму
+            $.ajax({
+                url: '/api/action-post',
+                type: 'POST',
+                data: formData,
+                success: function(response) {
+                    console.log('AJAX Success:', response); // Выводим успешный ответ в консоль
+
+                    if (response.success) {
+                        // Успешное выполнение запроса, выполнить редирект
+                        console.log('Redirect URL:', response.redirect_url); // Выводим URL редиректа в консоль
+                        var redirectUrl = response.redirect_url;
+                        window.location.href = redirectUrl;
+                    } else {
+                        // Ошибка при выполнении запроса, обработать соответствующим образом
+                        console.log('Request Error:', response.error); // Выводим сообщение об ошибке в консоль
+                    }
+                },
+                error: function() {
+                    // Ошибка при выполнении AJAX-запроса, обработать соответствующим образом
+                    console.log('AJAX Error: Unexpected error occurred.'); // Выводим сообщение об ошибке в консоль
+                }
             });
         });
-    </script>
-</head>
-<body>
-    <h1>Аутентификация</h1>
+    });
+</script>
+
+{% endblock %}
+
+{% block content %}
     <form method="POST" action="/api/action-post">
         <input type="hidden" name="mac_address" value="{{ mac }}">
         <input type="hidden" name="ip_address" value="{{ ip }}">
@@ -31,7 +56,8 @@
         <input type="hidden" name="link_login_only" value="{{ link_login_only }}">
         <input type="hidden" name="link_orig" value="{{ link_orig }}">
         <input type="hidden" name="error" value="{{ error }}">
-        <input type="submit" value="Продолжить">
+        <div class="button-container">
+            <input type="submit" value="Продовжити" class="button">
+        </div>
     </form>
-</body>
-</html>
+{% endblock %}

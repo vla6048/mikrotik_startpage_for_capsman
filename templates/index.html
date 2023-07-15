@@ -1,19 +1,42 @@
-<!DOCTYPE html>
-<html>
-<head>
-   <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.png') }}">
-   <title>Стартовая страница</title>
-   <meta charset="UTF-8">
-   <style>
-      img {
-         height: 100vh;
-         width: auto;
-      }
-   </style>
-</head>
-<body>
-   <figure>
-      <img src="{{ url_for('static', filename='1633012471660.jpg') }}" />
-   </figure>
-</body>
-</html>
+<!-- auth.html -->
+{% extends 'base.html' %}
+
+{% block title %}Авторизація{% endblock %}
+
+{% block scripts %}
+    <script>
+            $(document).ready(function() {
+      $('form').submit(function(e) {
+        e.preventDefault();
+        var form = $(this);
+        var button = form.find('.button');
+
+        button.prop('disabled', true);
+        button.addClass('disabled');
+        button.val('...');
+
+        var formData = form.serialize();
+
+        $.post('/api/action-post', formData, function() {
+          alert("Запрос успешно выполнен!");
+          window.close();
+        });
+      });
+    });
+    </script>
+{% endblock %}
+
+{% block content %}
+    <form method="POST" action="/api/action-post">
+        <input type="hidden" name="mac_address" value="{{ mac }}">
+        <input type="hidden" name="ip_address" value="{{ ip }}">
+        <input type="hidden" name="username" value="{{ username }}">
+        <input type="hidden" name="link_login" value="{{ link_login }}">
+        <input type="hidden" name="link_login_only" value="{{ link_login_only }}">
+        <input type="hidden" name="link_orig" value="{{ link_orig }}">
+        <input type="hidden" name="error" value="{{ error }}">
+        <div class="button-container">
+            <input type="submit" value="Продовжити" class="button">
+            </div>
+    </form>
+{% endblock %}

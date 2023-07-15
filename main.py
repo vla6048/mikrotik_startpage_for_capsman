@@ -1,15 +1,19 @@
 import os
 import socket
 import struct
-from flask import Flask, request, render_template, jsonify, make_response, redirect
-from flask_sqlalchemy import SQLAlchemy
+
 import routeros_api
+from flask import Flask, request, render_template, jsonify, redirect
+from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
+from sqlalchemy.orm import sessionmaker
 
 app = Flask(__name__)
-app.config[
-    'SQLALCHEMY_DATABASE_URI'] = f"mysql+pymysql://{os.getenv('SP_USER')}:{os.getenv('SP_PASSWD')}@{os.getenv('SP_HOST')}/radius"
+app.config['SQLALCHEMY_DATABASE_URI'] = f"mysql+aiomysql://{os.getenv('SP_USER')}:{os.getenv('SP_PASSWD')}@{os.getenv('SP_HOST')}/radius"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
+async_engine = create_async_engine(f"mysql+aiomysql://{os.getenv('SP_USER')}:{os.getenv('SP_PASSWD')}@{os.getenv('SP_HOST')}/radius")
+async_session = sessionmaker(bind=async_engine, expire_on_commit=False, class_=AsyncSession)
 
 
 class RadCheck(db.Model):
@@ -19,7 +23,6 @@ class RadCheck(db.Model):
     attribute = db.Column(db.String(64), nullable=False)
     op = db.Column(db.String(2), nullable=False, default='==')
     value = db.Column(db.String(253), nullable=False)
-    # framedipv6address = db.Column(db.String(255), nullable=True)
 
 
 # вот тут нужно расписать создание двух таблиц, userbillinfo и userinfo, для корректного отображения в daloradius
@@ -27,8 +30,6 @@ class RadCheck(db.Model):
 #     __tablename__ = 'userbillinfo'
 #     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
 #     username = db.Column(db.String(128), nullable=True)
-#
-
 
 def convert_ip(ip):
     converted_ip = socket.inet_ntoa(struct.pack('!L', int(ip)))
@@ -90,16 +91,9 @@ def handle_form():
                            link_orig=link_orig,
                            error=error)
 
-# @app.route('/api/action-get', methods=['GET'])
-# def api_get():
-#     mac_address = request.args.get('mac')
-#     mikrotik_ip_str = request.args.get('mikrotik_ip')
-#     mikrotik_ip = mikrotik_ip_str
-#     return render_template('mktapi.html', mac_address=mac_address, mikrotik_ip=mikrotik_ip)
-
 
 @app.route('/api/action-post', methods=['POST'])
-def api_post():
+async def api_post():
     mac_address = request.form.get('mac_address')
     ip_address = request.form.get('ip_address')
     username = request.form.get('username')
@@ -108,16 +102,26 @@ def api_post():
     link_orig = request.form.get('link_orig')
     error = request.form.get('error')
 
-    # Добавление записи в таблицу radcheck
-    radcheck_entry = RadCheck(username=mac_address, attribute='Cleartext-Password', op=':=', value='1')
-    db.session.add(radcheck_entry)
-    db.session.commit()
+    async with async_session() as session:
+        async with session.begin():
+            radcheck_entry = RadCheck(username=mac_address, attribute='Cleartext-Password', op=':=', value='1')
+            session.add(radcheck_entry)
+            try:
+                await session.flush()
+            except:
+                pass
 
-    # Создание ответа с перенаправлением
-    response = make_response(redirect(link_login_only))
-    response.headers['Refresh'] = '0; url={}'.format(link_login_only)
-
-    return response
+            if radcheck_entry.id:
+                try:
+                    # Check if the async_session object is closed
+                    if session.is_closed():
+                        return
+                    await session.close()
+                except:
+                    pass
+                return jsonify({'success': True, 'redirect_url': link_login})
+            else:
+                return jsonify({'success': False})
 
 
 if __name__ == '__main__':

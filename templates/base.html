@@ -1,0 +1,27 @@
+<!-- base.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.png') }}">
+    <title>{% block title %}{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@600&display=swap" rel="stylesheet">
+    {% block scripts %}
+    {% endblock %}
+</head>
+<body>
+<!--    <div class="overlay"></div> &lt;!&ndash; Добавленный элемент с классом overlay &ndash;&gt;-->
+    <header>
+        <h1><img src="{{ url_for('static', filename='logo.png') }}" alt="Логотип"></h1>
+        <img src="{{ url_for('static', filename='slogan.png') }}" alt="Slogan" class="slogan-image">
+        <h3>Авторизація</h3>
+    </header>
+    <main>
+        {% block content %}
+        {% endblock %}
+    </main>
+</body>
+</html>
